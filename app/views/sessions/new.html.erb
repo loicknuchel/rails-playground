@@ -1,0 +1,17 @@
+<h1>Login</h1>
+
+<%= form_with(method: 'post', url: login_path(redirect: params[:redirect])) do |form| %>
+  <div>
+    <%= form.label :email %><br>
+    <%= form.text_field :email, autofocus: true %>
+  </div>
+
+  <div>
+    <%= form.label :password %><br>
+    <%= form.password_field :password %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>

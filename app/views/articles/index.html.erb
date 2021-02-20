@@ -12,4 +12,6 @@ Our blog has <%= Article.public_count %> articles and counting!
   <% end %>
 </ul>
 
-<%= link_to "New Article", new_article_path %>
+<% if @_current_user&.author? %>
+  <%= link_to "New Article", new_article_path %>
+<% end %>

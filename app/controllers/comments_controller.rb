@@ -1,6 +1,8 @@
 class CommentsController < ApplicationController
-
-  http_basic_authenticate_with name: 'admin', password: 'admin', only: %i[destroy]
+  before_action :require_login
+  before_action only: %i[destroy] do
+    require_roles(%w[admin author])
+  end
 
   def create
     @article = Article.find(params[:article_id])

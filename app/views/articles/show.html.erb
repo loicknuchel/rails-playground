@@ -2,13 +2,19 @@
 
 <p><%= @article.body %></p>
 
-<ul>
-  <li><%= link_to "Edit", edit_article_path(@article) %></li>
-  <li><%= link_to "Destroy", article_path(@article), method: :delete, data: { confirm: "Are you sure?" } %></li>
-</ul>
+<% if @_current_user&.author? %>
+  <ul>
+    <li><%= link_to "Edit", edit_article_path(@article) %></li>
+    <li><%= link_to "Destroy", article_path(@article), method: :delete, data: { confirm: "Are you sure?" } %></li>
+  </ul>
+<% end %>
 
 <h2>Comments</h2>
 <%= render @article.comments %>
 
-<h2>Add a comment:</h2>
-<%= render 'comments/form', article: @article %>
+<% if @_current_user&.guest? %>
+  <h2>Add a comment:</h2>
+  <%= render 'comments/form', article: @article %>
+<% else %>
+  <%= link_to "Login to comment", login_path(redirect: request.path) %>
+<% end %>

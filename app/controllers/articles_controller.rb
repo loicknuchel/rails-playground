@@ -1,6 +1,8 @@
 class ArticlesController < ApplicationController
-
-  http_basic_authenticate_with name: 'admin', password: 'admin', except: %i[index show]
+  before_action :require_login, except: %i[index show]
+  before_action except: %i[index show] do
+    require_roles(%w[admin author])
+  end
 
   def index
     @articles = Article.all
