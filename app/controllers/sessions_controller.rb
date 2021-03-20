@@ -7,7 +7,7 @@ class SessionsController < ApplicationController
       cookies.delete(:login_redirect)
       redirect_to redirect
     else
-      flash.now[:error] = 'Invalid credentials'
+      flash.now[:error] = "Invalid credentials"
       render :new
     end
   end
@@ -15,6 +15,6 @@ class SessionsController < ApplicationController
   def destroy
     session.delete(:current_user_id)
     @_current_user = nil
-    redirect_to request.referer || root_path, notice: 'You have successfully logged out.'
+    redirect_to request.referer || root_path, notice: "You have successfully logged out."
   end
 end

@@ -5,24 +5,24 @@ module Visible
 
   # executed at class level
   included do
-    validates :status, inclusion: { in: VALID_STATUSES }
+    validates :status, inclusion: {in: VALID_STATUSES}
   end
 
   class_methods do
     def public_count
-      where(status: 'public').count
+      where(status: "public").count
     end
   end
 
   def public?
-    status == 'public'
+    status == "public"
   end
 
   def private?
-    status == 'private'
+    status == "private"
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end

@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :require_login
-  before_action { require_role('admin') }
+  before_action { require_role("admin") }
 
   def index
     @users = User.all
