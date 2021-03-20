@@ -1,14 +1,14 @@
 <p>
-  <%= link_to "Home", root_path %>
+  <%= link_to "Home", root_path, "track-click" => "menu-home" %>
 
   <% if @_current_user&.role?('admin') %>
-    <%= link_to "Users", users_path %>
+    <%= link_to "Users", users_path, "track-click" => "menu-users" %>
   <% end %>
 
   <% if @_current_user.present? %>
-    <%= @_current_user.name %> (<%= @_current_user.role %>)
-    <%= link_to "Logout", logout_path, method: :delete, data: { confirm: "Are you sure?" } %>
+    <span track-id="<%= @_current_user.id %>"><%= @_current_user.name %> (<%= @_current_user.role %>)</span>
+    <%= link_to "Logout", logout_path, method: :delete, data: { confirm: "Are you sure?" }, "track-click" => "menu-logout" %>
   <% else %>
-    <%= link_to "Login", login_path(redirect: request.path) %>
+    <%= link_to "Login", login_path(redirect: request.path), "track-click" => "menu-login" %>
   <% end %>
 </p>
