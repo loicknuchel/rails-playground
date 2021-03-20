@@ -1,5 +1,8 @@
 <h1><%= @article.title %></h1>
 
+<% @article.summary.map do |summary| %>
+  <p>summary: <%= summary %></p>
+<% end %>
 <p><%= @article.body %></p>
 
 <% if @_current_user&.author? %>
