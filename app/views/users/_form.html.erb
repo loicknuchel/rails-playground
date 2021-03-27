@@ -25,7 +25,7 @@
 
   <div>
     <%= form.label :role %><br>
-    <%= form.select :role, %w[admin author guest], selected: 'guest' %>
+    <%= form.select :role, Role.all.map(&:name), selected: Option(user.role).get_or_else(Role::GUEST).name %>
   </div>
 
   <div>

@@ -1,7 +1,7 @@
 class CommentsController < ApplicationController
   before_action :require_login
   before_action only: %i[destroy] do
-    require_roles(%w[admin author])
+    require_roles(Role::ADMIN, Role::AUTHOR)
   end
 
   def create

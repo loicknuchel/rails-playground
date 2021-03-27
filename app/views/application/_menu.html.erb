@@ -1,7 +1,7 @@
 <p>
   <%= link_to "Home", root_path, "track-click" => "menu-home" %>
 
-  <% if @_current_user&.role?('admin') %>
+  <% if @_current_user&.admin? %>
     <%= link_to "Users", users_path, "track-click" => "menu-users" %>
   <% end %>
 

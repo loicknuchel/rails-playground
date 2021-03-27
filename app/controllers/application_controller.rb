@@ -15,16 +15,14 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def require_role(role)
-    unless @_current_user&.role?(role)
+  def require_roles(*roles)
+    unless @_current_user&.any_role?(roles)
       unauthorized
     end
   end
 
-  def require_roles(roles)
-    unless @_current_user&.any_role?(roles)
-      unauthorized
-    end
+  def require_role(role)
+    require_roles(role)
   end
 
   def unauthorized

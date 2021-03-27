@@ -1,7 +1,7 @@
 class ArticlesController < ApplicationController
   before_action :require_login, except: %i[index show]
   before_action except: %i[index show] do
-    require_roles(%w[admin author])
+    require_roles(Role::ADMIN, Role::AUTHOR)
   end
 
   def index
