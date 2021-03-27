@@ -1,9 +1,12 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  title: MyString
-  body: MyText
+ruby:
+  status: public
+  title: My ruby adventure
+  body: Here it is, I started some Ruby and now I'm writting some fixtures
+  summary: Ruby is nice
 
-two:
-  title: MyString
-  body: MyText
+rails:
+  status: private
+  title: Rails experiments
+  body: Draft article on Rails

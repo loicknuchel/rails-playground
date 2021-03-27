@@ -1,5 +1,5 @@
 class Comment < ApplicationRecord
-  include Visible
+  include HasStatus
 
   belongs_to :article
 end

@@ -5,6 +5,10 @@
 <% end %>
 <p><%= @article.body %></p>
 
+<% if !@article.status_public? %>
+  <p>Status: <b><%= @article.status.value %></b></p>
+<% end %>
+
 <% if @_current_user&.author? %>
   <ul>
     <li><%= link_to "Edit", edit_article_path(@article) %></li>

@@ -4,7 +4,7 @@ Our blog has <%= Article.public_count %> articles and counting!
 
 <ul>
   <% @articles.each do |article| %>
-    <% if article.public? %>
+    <% if article.status_public? %>
       <li>
         <%= link_to article.title, article %>
       </li>

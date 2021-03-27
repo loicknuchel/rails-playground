@@ -25,7 +25,7 @@
 
   <div>
     <%= form.label :status %><br>
-    <%= form.select :status, %w[public private archived], selected: 'public' %>
+    <%= form.select :status, Status.all.map(&:value), selected: Option(article.status).get_or_else(Status::PUBLIC).value %>
   </div>
 
   <div>
