@@ -1,14 +1,14 @@
 <p>
   <%= link_to "Home", root_path, "track-click" => "menu-home" %>
 
-  <% if @_current_user&.admin? %>
+  <% if @_current_user.has(&:admin?) %>
     <%= link_to "Users", users_path, "track-click" => "menu-users" %>
   <% end %>
 
-  <% if @_current_user.present? %>
-    <span track-id="<%= @_current_user.id %>"><%= @_current_user.name %> (<%= @_current_user.role %>)</span>
+  <% @_current_user.map do |user| %>
+    <span track-id="<%= user.id %>"><%= user.name %> (<%= user.role.name %>)</span>
     <%= link_to "Logout", logout_path, method: :delete, data: { confirm: "Are you sure?" }, "track-click" => "menu-logout" %>
-  <% else %>
+  <% end.get_or_else do %>
     <%= link_to "Login", login_path(redirect: request.path), "track-click" => "menu-login" %>
   <% end %>
 </p>

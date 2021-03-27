@@ -5,18 +5,18 @@ class ApplicationController < ActionController::Base
   private
 
   def _current_user
-    @_current_user ||= session[:current_user_id] && User.find_by(id: session[:current_user_id])
+    @_current_user = Option(session[:current_user_id] && User.find_by(id: session[:current_user_id])) if @_current_user.nil? || @_current_user.none?
   end
 
   def require_login
-    unless @_current_user
+    if @_current_user.none?
       cookies[:login_redirect] = request.path
       redirect_to login_path
     end
   end
 
   def require_roles(*roles)
-    unless @_current_user&.any_role?(roles)
+    unless @_current_user.has { |u| u.any_role?(roles) }
       unauthorized
     end
   end
