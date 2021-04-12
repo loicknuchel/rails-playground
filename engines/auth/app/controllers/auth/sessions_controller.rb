@@ -1,13 +1,18 @@
 module Auth
   class SessionsController < ApplicationController
     def new
+      if current_user.some?
+        redirect = cookies[:login_redirect] || params[:redirect] || main_app.root_path
+        cookies.delete(:login_redirect)
+        redirect_to redirect
+      end
     end
 
     def create
       @user = User.find_by(email: params[:email], password: params[:password])
       if @user
         session[:current_user_id] = @user.id
-        redirect = cookies[:login_redirect] || params[:redirect] || root_path
+        redirect = cookies[:login_redirect] || params[:redirect] || main_app.root_path
         cookies.delete(:login_redirect)
         redirect_to redirect
       else
@@ -18,8 +23,8 @@ module Auth
 
     def destroy
       session.delete(:current_user_id)
-      @_current_user = None()
-      redirect_to request.referer || root_path, notice: "You have successfully logged out."
+      destroy_current_user
+      redirect_to request.referer || main_app.root_path, notice: "You have successfully logged out."
     end
   end
 end

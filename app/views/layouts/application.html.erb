@@ -9,9 +9,8 @@
     <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
   </head>
-
   <body>
-    <%= render "menu" %>
+    <%= render "application/menu" %>
     <% flash.each do |type, msg| %>
       <div class="<%= type %>"><%= msg %></div>
     <% end %>
