@@ -23,5 +23,5 @@
   <h2>Add a comment:</h2>
   <%= render 'comments/form', article: @article %>
 <% else %>
-  <%= link_to "Login to comment", login_path(redirect: request.path) %>
+  <%= link_to "Login to comment", auth.login_path(redirect: request.path) %>
 <% end %>

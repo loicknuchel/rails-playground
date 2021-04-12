@@ -11,7 +11,7 @@ class ApplicationController < ActionController::Base
   def require_login
     if @_current_user.none?
       cookies[:login_redirect] = request.path
-      redirect_to login_path
+      redirect_to auth.login_path
     end
   end
 

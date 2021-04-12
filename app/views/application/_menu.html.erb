@@ -7,8 +7,8 @@
 
   <% @_current_user.map do |user| %>
     <span track-id="<%= user.id %>"><%= user.name %> (<%= user.role.name %>)</span>
-    <%= link_to "Logout", logout_path, method: :delete, data: { confirm: "Are you sure?" }, "track-click" => "menu-logout" %>
+    <%= link_to "Logout", auth.logout_path, method: :delete, data: { confirm: "Are you sure?" }, "track-click" => "menu-logout" %>
   <% end.get_or_else do %>
-    <%= link_to "Login", login_path(redirect: request.path), "track-click" => "menu-login" %>
+    <%= link_to "Login", auth.login_path(redirect: request.path), "track-click" => "menu-login" %>
   <% end %>
 </p>

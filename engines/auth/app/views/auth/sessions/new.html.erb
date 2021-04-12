@@ -1,6 +1,6 @@
 <h1>Login</h1>
 
-<%= form_with(method: 'post', url: login_path(redirect: params[:redirect])) do |form| %>
+<%= form_with(method: 'post', url: auth.login_path(redirect: params[:redirect])) do |form| %>
   <div>
     <%= form.label :email %><br>
     <%= form.text_field :email, autofocus: true %>
