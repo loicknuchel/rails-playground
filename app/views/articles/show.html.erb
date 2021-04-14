@@ -9,7 +9,7 @@
   <p>Status: <b><%= @article.status.value %></b></p>
 <% end %>
 
-<% if @_current_user.has(&:author?) %>
+<% if current_user.has(&:author?) %>
   <ul>
     <li><%= link_to "Edit", edit_article_path(@article) %></li>
     <li><%= link_to "Destroy", article_path(@article), method: :delete, data: { confirm: "Are you sure?" } %></li>
@@ -19,9 +19,9 @@
 <h2>Comments</h2>
 <%= render @article.comments %>
 
-<% if @_current_user.has(&:guest?) %>
+<% if current_user.has(&:guest?) %>
   <h2>Add a comment:</h2>
   <%= render 'comments/form', article: @article %>
 <% else %>
-  <%= link_to "Login to comment", login_path(redirect: request.path) %>
+  <%= link_to "Login to comment", auth.login_path(redirect: request.path) %>
 <% end %>
