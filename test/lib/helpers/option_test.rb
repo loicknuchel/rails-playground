@@ -6,11 +6,13 @@ class OptionTest < ActiveSupport::TestCase
   none = Option::None.instance
 
   test "option creation" do
-    assert_equal some, Option("a")
-    assert_equal none, Option(nil)
-    assert_equal some, Some("a")
-    assert_equal none, None()
-    assert_raise(NoMethodError) { Option.new("a") }
+    assert_equal some, Option.new("a")
+    assert_equal none, Option.new(nil)
+    assert_equal none, Option.empty
+    assert_equal some, Option.from_nillable_or_option('a')
+    assert_equal some, Option.from_nillable_or_option(some)
+    assert_equal none, Option.from_nillable_or_option(nil)
+    assert_equal none, Option.from_nillable_or_option(none)
     assert_raise(NoMethodError) { Option::AbstractClass.new("a") }
   end
   test "some?" do
@@ -33,20 +35,21 @@ class OptionTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { some.get_or_else("b") { "b" } }
     assert_raise(ArgumentError) { none.get_or_else("b") { "b" } }
   end
-  test "get_or_nil" do
-    assert_equal "a", some.get_or_nil
-    assert_nil none.get_or_nil
-  end
   test "get_or_raise" do
     assert_equal "a", some.get_or_raise(ArgumentError)
     assert_raise(Option::NoSuchElementError) { none.get_or_raise }
     assert_raise(ArgumentError) { none.get_or_raise(ArgumentError) }
   end
+  test "get_or_nil" do
+    assert_equal "a", some.get_or_nil
+    assert_nil none.get_or_nil
+  end
   test "map" do
     assert_equal Some("A"), some.map { |v| v.upcase }
     assert_equal none, none.map { |v| v.upcase }
-    assert_equal None(), some.map { |v| nil }
+    assert_equal none, some.map { |v| nil }
     assert_equal Some(Some("ab")), some.map { |v| Some(v + "b") }
+    assert_raise(ArgumentError) { some.map }
   end
   test "flat_map" do
     assert_equal Some("ab"), some.flat_map { |v| Some(v + "b") }
@@ -56,41 +59,102 @@ class OptionTest < ActiveSupport::TestCase
     assert_equal Some(6), Some(1).flat_map { |a| Some(2).flat_map { |b| Some(3).flat_map { |c| Some(a + b + c) } } }
     assert_equal Some(6), Some(1).flat_map { |a| Some(2).flat_map { |b| Some(3).map { |c| a + b + c } } }
     assert_equal Some(Some("a")), some.flat_map { |v| Some(Some(v)) }
+    assert_raise(ArgumentError) { some.flat_map }
   end
   test "fold" do
-    assert_equal "a", some.fold("err") { |value| value.to_s }
-    assert_equal "err", none.fold("err") { |value| value.to_s }
-    assert_raise(TypeError) { none.fold("err") }
+    # two values
+    assert_equal "ok", some.fold("ko", "ok")
+    assert_equal "ko", none.fold("ko", "ok")
+
+    # proc on empty
+    assert_equal "ok", some.fold(proc { "ko" }, "ok")
+    assert_equal "ko", none.fold(proc { "ko" }, "ok")
+
+    # proc on present
+    assert_equal "a", some.fold("ko", proc { |v| v.to_s })
+    assert_equal "ko", none.fold("ko", proc { |v| v.to_s })
+
+    # block on present
+    assert_equal "a", some.fold("ko", &:to_s)
+    assert_equal "ko", none.fold("ko", &:to_s)
+    assert_equal "ak", some.fold("ko") { |v| v + "k" }
+    assert_equal "ko", none.fold("ko") { |v| v + "k" }
+
+    # missing empty case
+    assert_raise(ArgumentError) { some.fold }
+
+    # missing present case
+    assert_raise(ArgumentError) { some.fold("ko") }
+
+    # present case twice
+    assert_raise(ArgumentError) { some.fold("ko", "ok") { |v| v + "k" } }
   end
-  test "has" do
-    assert some.has { |value| value == "a" }
-    assert_not some.has { |value| value != "a" }
-    assert_not none.has { |value| value == "a" }
-    assert_not none.has { |value| value != "a" }
-    assert_raise(TypeError) { some.has }
+  test "has?" do
+    assert some.has? { |value| value == "a" }
+    assert_not some.has? { |value| value != "a" }
+    assert_not none.has? { |value| value == "a" }
+    assert_not none.has? { |value| value != "a" }
+    assert_raise(ArgumentError) { some.has? }
   end
   test "or" do
+    # return the first option present of two
     assert_equal some, some.or(Some("b"))
     assert_equal Some("b"), none.or(Some("b"))
     assert_equal some, some.or(none)
     assert_equal none, none.or(none)
-    assert_equal some, some.or { Some("b") }
-    assert_equal Some("b"), none.or { Some("b") }
+
+    # return the first option present of many
+    assert_equal some, some.or(Some("b"), Some("c"), Some("d"))
+    assert_equal Some("b"), none.or(Some("b"), Some("c"), Some("d"))
+    assert_equal Some("b"), none.or(Some("b"), none, Some("d"))
+    assert_equal Some("b"), none.or(Some("b"), none, none)
+    assert_equal Some("c"), none.or(none, Some("c"), Some("d"))
+    assert_equal Some("d"), none.or(none, none, Some("d"))
+    assert_equal none, none.or(none, none, none)
+
+    # handle block also
+    assert_equal some, (some.or { Some("b") })
+    assert_equal Some("b"), (none.or { Some("b") })
+    assert_equal some, (some.or(Some("b"), Some("c")) { Some("d") })
+    assert_equal Some("b"), (none.or(Some("b"), Some("c")) { Some("d") })
+    assert_equal Some("c"), (none.or(none, Some("c")) { Some("d") })
+    assert_equal Some("d"), (none.or(none, none) { Some("d") })
+    assert_equal none, (none.or(none, none) { none })
+
+    # block is not executed if a present option is found before
+    assert_equal some, (some.or { raise "error" })
+    assert_equal Some("b"), (none.or(Some("b")) { raise "error" })
+    assert_raise { none.or { raise "error" } }
+    assert_raise { none.or(none) { raise "error" } }
+
+    # every parameter should be an Option
     assert_raise(TypeError) { some.or(1) }
-    assert_equal some, some.or { 1 } # block not evaluated so can't assert its result
     assert_raise(TypeError) { none.or(1) }
+    assert_raise(TypeError) { some.or(Some("b"), 1) }
+
+    # block return type is checked only when executed
+    assert_equal some, (some.or { 1 })
     assert_raise(TypeError) { none.or { 1 } }
-    assert_raise(ArgumentError) { some.or(Some(1)) { Some(1) } }
-    assert_raise(ArgumentError) { none.or(Some(1)) { Some(1) } }
-    assert_equal some, some.or { raise "error" }
+    assert_equal Some("b"), (none.or(Some("b")) { 1 })
+    assert_raise(TypeError) { none.or(none) { 1 } }
   end
   test "and" do
+    # call the block if the two options are present
     assert_equal Some("aa"), some.and(some) { |a, b| a + b }
     assert_equal none, none.and(some) { |a, b| a + b }
     assert_equal none, some.and(none) { |a, b| a + b }
     assert_equal none, none.and(none) { |a, b| a + b }
+
+    # call the block if all options are present
+    assert_equal Some("aaaa"), some.and(some, some, some) { |a, b, c, d| a + b + c + d }
+    assert_equal none, none.and(some, some, some) { |a, b, c, d| a + b + c + d }
+    assert_equal none, some.and(none, some, some) { |a, b, c, d| a + b + c + d }
+    assert_equal none, some.and(some, none, some) { |a, b, c, d| a + b + c + d }
+
+    # every parameter should be an Option
     assert_raise(TypeError) { some.and(1) { |a, b| a + b } }
     assert_raise(TypeError) { none.and(1) { |a, b| a + b } }
+    assert_raise(TypeError) { some.and(some, 1, none) { |a, b, c, d| a + b + c + d } }
   end
   test "to_s" do
     assert_equal "Some(a)", some.to_s
@@ -156,7 +220,7 @@ class OptionTest < ActiveSupport::TestCase
     end
 
     assert_case(Some(1), Option::Some, Option::None)
-    assert_case(None(), Option::None, Option::Some)
+    assert_case(none, Option::None, Option::Some)
     assert_case(Some(1), Some(1), Some(2))
     assert_case(Some(1), Option::AbstractClass, NilClass)
     assert_case(Some(1), Option, Numeric)
@@ -165,7 +229,7 @@ class OptionTest < ActiveSupport::TestCase
   test "monad laws" do
     [
       [1, proc { |x| Some(x + 2) }, proc { |x| Some(x * 3) }],
-      [3, proc { |x| Some(x + 2) }, proc { |x| None() }],
+      [3, proc { |x| Some(x + 2) }, proc { |x| none }],
       ["a", proc { |x| Some(x + "b") }, proc { |x| Some(x + "c") }]
     ].map { |x, f, g|
       assert_equal f.yield(x), Some(x).flat_map { |a| f.yield(a) } # left identity
@@ -187,7 +251,7 @@ class OptionTest < ActiveSupport::TestCase
 
     Option.load_extensions
     assert_equal Some("test"), "test".option
-    assert_equal None(), nil.option
+    assert_equal none, nil.option
     Option.unload_extensions
 
     assert_raise(NoMethodError) { "test".option }
@@ -195,7 +259,7 @@ class OptionTest < ActiveSupport::TestCase
 
     Option.with_extensions do
       assert_equal Some("test"), "test".option
-      assert_equal None(), nil.option
+      assert_equal none, nil.option
     end
 
     assert_raise(NoMethodError) { "test".option }
@@ -203,6 +267,10 @@ class OptionTest < ActiveSupport::TestCase
   end
 
   private
+
+  def Some(value)
+    Option::Some.new(value)
+  end
 
   def get_error
     if block_given?

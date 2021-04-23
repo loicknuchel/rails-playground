@@ -27,7 +27,7 @@ module Auth
       end
 
       def require_roles(*roles)
-        unless current_user.has { |u| u.any_role?(roles) }
+        unless current_user.has? { |u| u.any_role?(roles) }
           unauthorized
         end
       end
